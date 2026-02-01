@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard Page
+{% endblock %}
+
+{% block content %}
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03" 
+        aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <a class="navbar-brand" href="#">Navbar</a>
+
+      <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+          <li class="nav-item active">
+            <a class="nav-link" href="{{url_for('dashboard')}}">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{url_for('history')}}">downloads</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{url_for('logout')}}">logout</a>
+          </li>
+      </div>
+    </nav>
+  </header>
+  <br><br>
+  <main>
+    <div class="welcome-container">
+        <div class="emoji-circle">👋</div>
+          <div class="welcome-text">
+              Welcome, {{ current_user.username }}!
+          </div>
+    </div>
+    <br>
+      <div class="text-center mt-5">
+      <h1>You<span class="text-danger">Tube</span></h1>
+    </div>
+
+    <div class="mt-4 text-center">
+      <form action="{{url_for('download')}}" method="post" class="d-inline-block w-100" style="max-width: 500px;" id="downloadForm">
+      <input type="text" name="url" id="url" class="form-control mb-3" placeholder="Paste YouTube link here" required>
+      <button type="submit" class="btn btn-primary w-100" id="downloadBtn">Download</button>
+      </form>
+
+      <!-- Spinner always in DOM -->
+      <div id="spinner" style="display:none; margin-top:20px;">
+          <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+          </div>
+          Downloading...
+      </div>
+    </div>
+  </main>
+
+  <!-- Download complete message -->
+  <div id="download-complete" style="display:none; margin-top:10px;" class="alert alert-success">
+      Download complete!
+  </div>
+
+
+  <footer class="container mt-5">
+    <div class="row row-cols-1 row-cols-md-3 g-4 text-center">
+      <div class="col">
+        <i class="fa-solid fa-video fa-2x mb-2"></i>
+        <p>Grab videos from YouTube for free — shorts, videos, channels, and streams.</p>
+      </div>
+      <div class="col">
+        <i class="fa-solid fa-download fa-2x mb-2"></i>
+        <p>Batch download multiple videos & audio. Save entire playlists with just a link.</p>
+      </div>
+      <div class="col">
+        <i class="fa-solid fa-star fa-2x mb-2"></i>
+        <p>Maintain original quality — from crisp HD up to stunning 8K.</p>
+      </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4 text-center mt-4">
+      <div class="col">
+        <i class="fa-solid fa-file-audio fa-2x mb-2"></i>
+        <p>Customize downloads in MP3, MP4, or any format to fit your device.</p>
+      </div>
+      <div class="col">
+        <i class="fa-solid fa-rocket fa-2x mb-2"></i>
+        <p>Fast download speed straight to your device.</p>
+      </div>
+      <div class="col">
+        <i class="fa-solid fa-shield fa-2x mb-2"></i>
+        <p>Secure and free from ads, popups, and malware. Your privacy is protected.</p>
+      </div>
+    </div>
+  </footer>
+
+<script>
+  const form = document.getElementById("downloadForm");
+  const spinner = document.getElementById("spinner");
+  const button = document.getElementById("downloadBtn");
+  const completeMessage = document.getElementById("download-complete");
+
+  form.addEventListener("submit", function(e){
+      e.preventDefault(); 
+      spinner.style.display = "block";
+      completeMessage.style.display = "none"; 
+      button.disabled = true;
+
+      const url = document.getElementById("url").value;
+
+      fetch("/download", {
+          method: "POST",
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: new URLSearchParams({url: url})
+      }).then(res => res.json())
+        .then(data => console.log(data.message))
+        .catch(err => console.error(err));
+  });
+
+  // Poll backend every 2s
+  function checkDownloadStatus() {
+      fetch("/download_status")
+          .then(res => res.json())
+          .then(data => {
+              if(data.downloading > 0){
+                  spinner.style.display = "block";  
+                  completeMessage.style.display = "none";
+                  button.disabled = true;
+              } else if(data.downloading == 0 && spinner.style.display == "block") {
+                  // Download just finished
+                  spinner.style.display = "none";  
+                  completeMessage.style.display = "block";
+                  button.disabled = false;         
+              }
+          });
+  }
+
+  setInterval(checkDownloadStatus, 2000);
+
+</script>
+
+
+{% endblock %}

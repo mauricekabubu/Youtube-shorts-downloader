@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}downloads{% endblock %}
+
+{% block content %}
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo03" 
+                aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+            <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('history') }}">Downloads</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<br><br>
+<div class="container">
+    <div class="row">
+        {% for url in urls %}
+        <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div class="card custom-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ url.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ url.url }}</h6>
+                    <p class="card-text">{{ url.filename }}</p>
+                    {% if url.status != 'completed' %}
+                        <span class="badge bg-warning">{{ url.status }}</span>
+                    {% endif %}
+                    <div class="d-flex justify-content-start align-items-center gap-2">
+                        <a href="{{ url.url }}" class="card-link" target="_blank">Watch Video</a>
+                        <form action="{{ url_for('delete', id=url.id) }}" method="post" class="delete-form">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #6a11cb, #2575fc); 
+        min-height: 100vh;
+        padding-bottom: 50px; 
+    }
+
+
+    .custom-card {
+        background-color: #ffffff; 
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .custom-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .custom-card .card-link:hover {
+        text-decoration: none;
+        color: #007bff;
+    }
+
+
+    .custom-card .card-title {
+        font-weight: 600;
+    }
+
+    .navbar {
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(5px);
+    }
+</style>
+<script>
+    document.querySelectorAll('.delete-form').forEach(form => {
+        form.addEventListener('submit', e => {
+            e.preventDefault(); 
+            const card = form.closest('.col-sm-6');
+
+            // submit the form in the background using fetch (without expecting JSON)
+            fetch(form.action, {
+                method: 'POST'
+            }).finally(() => {
+                // remove the card immediately
+                card.remove();
+            });
+        });
+    });
+</script>
+{% endblock %}
